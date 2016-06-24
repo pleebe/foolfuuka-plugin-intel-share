@@ -1,0 +1,27 @@
+{
+  "name": "foolz/foolfuuka-plugin-intel-share",
+  "type": "foolz-foolfuuka-plugin",
+  "version": "1.0.0",
+  "description": "Provides interface for sharing banned media hashes.",
+  "keywords": ["intel","share"],
+  "homepage": "http://www.4plebs.org",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "4plebs",
+      "email": "admin@4plebs.org"
+    }
+  ],
+  "support": {
+    "email": "support@foolz.us",
+    "irc": "irc://irc.irchighway.net/fooldriver"
+  },
+  "require" : {
+    "foolz/plugin": "dev"
+  },
+  "extra": {
+    "name": "Intel",
+    "slug": "intel",
+    "module": "foolfuuka"
+  }
+}
