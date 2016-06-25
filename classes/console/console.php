@@ -130,6 +130,7 @@ class Console extends Command
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                    curl_setopt($ch, CURLOPT_USERAGENT, 'ffuuka intel share plugin/1.0');
                     $result = curl_exec($ch);
                     $result_r = json_decode($result, true);
 
