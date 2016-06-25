@@ -113,8 +113,8 @@ class Console extends Command
                                         $this->dc->qb()
                                             ->update($radix->getTable('_images'))
                                             ->set('banned', 1)
-                                            ->where('media_id = :media_id')
-                                            ->setParameter(':media_id', $hash)
+                                            ->where('media_hash = :media_hash')
+                                            ->setParameter(':media_hash', $hash)
                                             ->execute();
                                     }
 
