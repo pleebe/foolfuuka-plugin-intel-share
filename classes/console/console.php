@@ -47,12 +47,63 @@ class Console extends Command
     {
         $this
             ->setName('intel_share:run')
-            ->setDescription('Runs the banned media hash sharing daemon');
+            ->setDescription('Runs the banned media hash sharing daemon')
+            ->addOption(
+                'rebuild',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                _i('Rebuild banned_md5 table')
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->intel_sharing($output);
+        if($input->getOption('rebuild')) {
+            $this->md5_rebuild($output);
+        } else {
+            $this->intel_sharing($output);
+        }
+    }
+
+    public function md5_rebuild($output)
+    {
+        $abc = "abcdefghijklmnopqrstuvwxyz";
+        $c = 0;
+        $i = $this->dc->qb()
+            ->select($abc[0].'.media_hash as hash');
+        foreach ($this->radix_coll->getAll() as $radix) {
+            if($c==0) {
+                $i->from($radix->getTable('_images'), $abc[$c]);
+                $i->where($abc[$c] . '.banned=1');
+            } else {
+                $i->innerJoin($abc[$c-1], $radix->getTable('_images'), $abc[$c], $abc[$c-1].'.media_hash = '.$abc[$c].'.media_hash');
+                $i->andWhere($abc[$c] . '.banned=1');
+            }
+            $c++;
+        }
+        $res = $i->execute()
+            ->fetchAll();
+        /* debug
+         * $output->writeln(print_r($i->getSQL()));*/
+        foreach($res as $e) {
+            try {
+                $re = $this->dc->qb()
+                    ->select('count(md5) as count')
+                    ->from($this->dc->p('banned_md5'))
+                    ->where('md5 = :md5')
+                    ->setParameter(':md5', $e['hash'])
+                    ->execute()
+                    ->fetch();
+                if (!$re['count']) {
+                    $this->dc->getConnection()
+                        ->insert($this->dc->p('banned_md5'), ['md5' => $e['hash']]);
+                    $output->write('+');
+                } else {
+                    $output->write('.');
+                }
+            } catch (\Exception $e) {$output->write('-');}
+        }
+        $output->writeln("\nDone rebuilding.");
     }
 
     public function intel_sharing($output)
@@ -82,6 +133,11 @@ class Console extends Command
                     $result = curl_exec($ch);
                     $result_r = json_decode($result, true);
 
+                    if(!array_key_exists('banned_hashes',$result_r)) {
+                        $run = 0;
+                        continue;
+                    }
+
                     foreach ($result_r['banned_hashes'] as $hash) {
                         $re = $this->dc->qb()
                             ->select('count(md5) as count')
@@ -96,7 +152,6 @@ class Console extends Command
                                 ->insert($this->dc->p('banned_md5'), ['md5' => $hash]);
 
                             foreach ($this->radix_coll->getAll() as $radix) {
-                                $output->write('radix'.$radix->shortname);
                                 try {
                                     $i = $this->dc->qb()
                                         ->select('COUNT(*) as count')

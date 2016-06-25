@@ -63,9 +63,16 @@ https://archivesite2.com</pre>',
             ],
             'paragraph' => [
                 'type' => 'paragraph',
-                'help' => _i('Run the daemon from the FoolFuuka directory.<br><pre>php console intel_share:run</pre>')
+                'help' => _i('Run the daemon from the FoolFuuka directory:<br><pre>php console intel_share:run</pre>')
             ],
             'separator2' => [
+                'type' => 'separator-short',
+            ],
+            'paragraph2' => [
+                'type' => 'paragraph',
+                'help' => _i('If your banned images (ff_banned_md5 table) appears empty you can rebuild that using:<br><pre>php console intel_share:run --rebuild=true</pre>')
+            ],
+            'separator3' => [
                 'type' => 'separator-short',
             ],
             'submit' => [
