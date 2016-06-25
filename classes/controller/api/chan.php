@@ -43,6 +43,12 @@ class IntelShare extends \Foolz\FoolFuuka\Controller\Api\Chan
             }
         }
 
+        $count = $this->dc->qb()
+            ->select('count(md5) as c')
+            ->from($this->dc->p('banned_md5'))
+            ->execute()
+            ->fetchAll();
+
         $per_page = 100;
         $result = $this->dc->qb()
             ->select('md5')
@@ -51,7 +57,15 @@ class IntelShare extends \Foolz\FoolFuuka\Controller\Api\Chan
             ->execute()
             ->fetchAll();
 
-        $this->response->setData(['banned_hashes' => $result]);
+        $results = [];
+
+        foreach($result as $r) {
+            foreach($r as $key => $value) {
+                array_push($results, $value);
+            }
+        }
+
+        $this->response->setData(['banned_hashes' => $results,'total_count' => $count[0]['c']]);
 
         return $this->response;
     }
