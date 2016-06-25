@@ -53,6 +53,7 @@ class IntelShare extends \Foolz\FoolFuuka\Controller\Api\Chan
         $result = $this->dc->qb()
             ->select('md5')
             ->from($this->dc->p('banned_md5'))
+            ->setMaxResults($per_page)
             ->setFirstResult(($page * $per_page) - $per_page)
             ->execute()
             ->fetchAll();
