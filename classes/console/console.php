@@ -75,7 +75,7 @@ class Console extends Command
             if($c==0) {
                 $i->from($radix->getTable('_images'), $abc[$c]);
                 $i->where($abc[$c] . '.banned=1');
-            } else {
+            } else if($c==1) {
                 $i->innerJoin($abc[$c-1], $radix->getTable('_images'), $abc[$c], $abc[$c-1].'.media_hash = '.$abc[$c].'.media_hash');
                 $i->andWhere($abc[$c] . '.banned=1');
             }
