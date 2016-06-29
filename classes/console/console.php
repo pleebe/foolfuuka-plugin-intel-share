@@ -106,6 +106,28 @@ class Console extends Command
         $output->writeln("\nDone rebuilding.");
     }
 
+    public function getdir($radix, $media, $thumbnail) {
+        return $this->preferences->get('foolfuuka.boards.directory').'/'.$radix->shortname.'/'
+        .($thumbnail ? 'thumb' : 'image').'/'.substr($media, 0, 4).'/'.substr($media, 4, 2).'/'.$media;
+    }
+
+    public function delete($radix, $md5)
+    {
+        $data = $this->dc->qb()
+            ->select('media, preview_op, preview_reply')
+            ->from($radix->getTable('_images'), 'ri')
+            ->where('media_hash = :md5')
+            ->setParameter(':md5', $md5)
+            ->execute()
+            ->fetch();
+        if($data['media']!==null&&$data['media']!=='')
+            unlink($this->getdir($radix, $data['media'], false));
+        if($data['preview_op']!==null&&$data['preview_op']!=='')
+            unlink($this->getdir($radix, $data['preview_op'], true));
+        if($data['preview_reply']!==null&&$data['preview_reply']!=='')
+            unlink($this->getdir($radix, $data['preview_reply'], true));
+    }
+
     public function intel_sharing($output)
     {
         if(!$this->preferences->get('foolfuuka.plugins.intel.get.enabled')) {
@@ -122,7 +144,7 @@ class Console extends Command
                 while ($run == 1) {
                     $page++;
                     $url = $base . '/_/api/chan/intel/?page=' . $page;
-                    $output->writeln("\n* Synchronizing with $base");
+                    $output->writeln("\n* Synchronizing with $url");
 
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, $url);
@@ -154,6 +176,8 @@ class Console extends Command
 
                             foreach ($this->radix_coll->getAll() as $radix) {
                                 try {
+                                    $this->delete($radix, $hash);
+
                                     $i = $this->dc->qb()
                                         ->select('COUNT(*) as count')
                                         ->from($radix->getTable('_images'), 'ri')
