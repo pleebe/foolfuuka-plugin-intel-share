@@ -106,9 +106,10 @@ class Console extends Command
         $output->writeln("\nDone rebuilding.");
     }
 
-    public function getdir($radix, $media, $thumbnail) {
-        return $this->preferences->get('foolfuuka.boards.directory').'/'.$radix->shortname.'/'
-        .($thumbnail ? 'thumb' : 'image').'/'.substr($media, 0, 4).'/'.substr($media, 4, 2).'/'.$media;
+    public function getdir($radix, $media, $thumbnail)
+    {
+        return $this->preferences->get('foolfuuka.boards.directory') . '/' . $radix->shortname . '/'
+        . ($thumbnail ? 'thumb' : 'image') . '/' . substr($media, 0, 4) . '/' . substr($media, 4, 2) . '/' . $media;
     }
 
     public function delete($radix, $md5)
@@ -120,22 +121,22 @@ class Console extends Command
             ->setParameter(':md5', $md5)
             ->execute()
             ->fetch();
-        if($data['media']!==null&&$data['media']!=='')
-            unlink($this->getdir($radix, $data['media'], false));
-        if($data['preview_op']!==null&&$data['preview_op']!=='')
-            unlink($this->getdir($radix, $data['preview_op'], true));
-        if($data['preview_reply']!==null&&$data['preview_reply']!=='')
-            unlink($this->getdir($radix, $data['preview_reply'], true));
+        if ($data['media'] !== null && $data['media'] !== '' && file_exists($this->getdir($radix, $data['media'], false)))
+            @unlink($this->getdir($radix, $data['media'], false));
+        if ($data['preview_op'] !== null && $data['preview_op'] !== '' && file_exists($this->getdir($radix, $data['preview_op'], true)))
+            @unlink($this->getdir($radix, $data['preview_op'], true));
+        if ($data['preview_reply'] !== null && $data['preview_reply'] !== '' && file_exists($this->getdir($radix, $data['preview_reply'], true)))
+            @unlink($this->getdir($radix, $data['preview_reply'], true));
     }
 
     public function intel_sharing($output)
     {
-        if(!$this->preferences->get('foolfuuka.plugins.intel.get.enabled')) {
+        if (!$this->preferences->get('foolfuuka.plugins.intel.get.enabled')) {
             $output->writeln("You need to configure this plugin first in the admin panel.");
             return;
         }
 
-        while(true) {
+        while (true) {
             $uris = preg_split('/\r\n|\r|\n/', $this->preferences->get('foolfuuka.plugins.intel.get.urls'));
 
             foreach ($uris as $base) {
@@ -156,7 +157,7 @@ class Console extends Command
                     $result = curl_exec($ch);
                     $result_r = json_decode($result, true);
 
-                    if(!array_key_exists('banned_hashes',$result_r)) {
+                    if (!array_key_exists('banned_hashes', $result_r)) {
                         $run = 0;
                         continue;
                     }
@@ -212,7 +213,7 @@ class Console extends Command
             }
             $sleep = $this->preferences->get('foolfuuka.plugins.intel.get.sleep');
             $output->writeln("\n* Sleeping for $sleep minutes");
-            sleep($sleep*60);
+            sleep($sleep * 60);
         }
     }
 }
