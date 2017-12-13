@@ -8,5 +8,4 @@ http://desuarchive.org
 https://archived.moe
 https://archiveofsins.com
 https://thebarchive.com
-http://boards.4tan.org
 ```
