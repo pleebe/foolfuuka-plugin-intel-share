@@ -46,31 +46,24 @@ class IntelShare extends \Foolz\FoolFrame\Controller\Admin
                 'preferences' => true,
                 'type' => 'textarea',
                 'label' => _i('Base URIs of sources for media hashes. They must have this plugin enabled and sharing enabled.'),
-                'help' => _i('One per line. Example <br><pre>http://archivesite.com').'
+                'help' => _i('One per line. Example') . '<br><pre>http://archivesite.com
 https://archivesite2.com</pre>',
                 'class' => 'span8',
                 'validation' => [new Trim()]
-            ],
-            'foolfuuka.plugins.intel.get.sleep' => [
-                'database' => true,
-                'label' => _i('Daemon sleep time between synchronizing (in minutes).'),
-                'type' => 'input',
-                'class' => 'span1',
-                'validation' => [new Assert\NotBlank(), new Assert\Type('digit')],
             ],
             'separator1' => [
                 'type' => 'separator-short',
             ],
             'paragraph' => [
                 'type' => 'paragraph',
-                'help' => _i('Run the daemon from the FoolFuuka directory:<br><pre>php console intel_share:run</pre>')
+                'help' => _i('Put this in your crontab') . ':<br><pre>0 * * * * /usr/bin/php ' . realpath(DOCROOT . '../') . DIRECTORY_SEPARATOR . 'console intel_share:run > /dev/null 2>&1</pre>'
             ],
             'separator2' => [
                 'type' => 'separator-short',
             ],
             'paragraph2' => [
                 'type' => 'paragraph',
-                'help' => _i('If your banned images (ff_banned_md5 table) appears empty you can rebuild that using:<br><pre>php console intel_share:run --rebuild=true</pre>')
+                'help' => _i('If your banned images (ff_banned_md5 table) appears empty you can rebuild that using') . ':<br><pre>php ' . realpath(DOCROOT . '../') . DIRECTORY_SEPARATOR . 'console intel_share:run --rebuild=true</pre>'
             ],
             'separator3' => [
                 'type' => 'separator-short',

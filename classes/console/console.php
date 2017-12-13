@@ -136,84 +136,82 @@ class Console extends Command
             return;
         }
 
-        while (true) {
-            $uris = preg_split('/\r\n|\r|\n/', $this->preferences->get('foolfuuka.plugins.intel.get.urls'));
+        $uris = preg_split('/\r\n|\r|\n/', $this->preferences->get('foolfuuka.plugins.intel.get.urls'));
 
-            foreach ($uris as $base) {
-                $page = 0;
-                $run = 1;
-                while ($run == 1) {
-                    $page++;
-                    $url = $base . '/_/api/chan/intel/?page=' . $page;
-                    $output->writeln("\n* Synchronizing with $url");
+        foreach ($uris as $base) {
+            $page = 0;
+            $run = 1;
+            while ($run == 1) {
+                $page++;
+                $url = $base . '/_/api/chan/intel/?page=' . $page;
+                $output->writeln("\n* Synchronizing with $url");
 
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, $url);
-                    curl_setopt($ch, CURLOPT_HEADER, false);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-                    curl_setopt($ch, CURLOPT_USERAGENT, 'ffuuka intel share plugin/1.0');
-                    $result = curl_exec($ch);
-                    $result_r = json_decode($result, true);
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'ffuuka intel share plugin/1.0');
+                $result = curl_exec($ch);
+                $result_r = json_decode($result, true);
 
-                    if (!array_key_exists('banned_hashes', $result_r)) {
-                        $run = 0;
-                        continue;
-                    }
+                if (!array_key_exists('banned_hashes', $result_r)) {
+                    $run = 0;
+                    continue;
+                }
 
-                    foreach ($result_r['banned_hashes'] as $hash) {
-                        $re = $this->dc->qb()
-                            ->select('count(md5) as count')
-                            ->from($this->dc->p('banned_md5'))
-                            ->where('md5 = :md5')
-                            ->setParameter(':md5', $hash)
-                            ->execute()
-                            ->fetch();
+                foreach ($result_r['banned_hashes'] as $hash) {
+                    $re = $this->dc->qb()
+                        ->select('count(md5) as count')
+                        ->from($this->dc->p('banned_md5'))
+                        ->where('md5 = :md5')
+                        ->setParameter(':md5', $hash)
+                        ->execute()
+                        ->fetch();
 
-                        if (!$re['count']) {
-                            $this->dc->getConnection()
-                                ->insert($this->dc->p('banned_md5'), ['md5' => $hash]);
+                    if (!$re['count']) {
+                        $this->dc->getConnection()
+                            ->insert($this->dc->p('banned_md5'), ['md5' => $hash]);
 
-                            foreach ($this->radix_coll->getAll() as $radix) {
-                                try {
-                                    $this->delete($radix, $hash);
+                        foreach ($this->radix_coll->getAll() as $radix) {
+                            try {
+                                $this->delete($radix, $hash);
 
-                                    $i = $this->dc->qb()
-                                        ->select('COUNT(*) as count')
-                                        ->from($radix->getTable('_images'), 'ri')
-                                        ->where('media_hash = :md5')
-                                        ->setParameter(':md5', $hash)
-                                        ->execute()
-                                        ->fetch();
+                                $i = $this->dc->qb()
+                                    ->select('COUNT(*) as count')
+                                    ->from($radix->getTable('_images'), 'ri')
+                                    ->where('media_hash = :md5')
+                                    ->setParameter(':md5', $hash)
+                                    ->execute()
+                                    ->fetch();
 
-                                    if (!$i['count']) {
-                                        $this->dc->getConnection()
-                                            ->insert($radix->getTable('_images'), ['media_hash' => $hash, 'banned' => 1]);
-                                    } else {
-                                        $this->dc->qb()
-                                            ->update($radix->getTable('_images'))
-                                            ->set('banned', 1)
-                                            ->where('media_hash = :media_hash')
-                                            ->setParameter(':media_hash', $hash)
-                                            ->execute();
-                                    }
+                                if (!$i['count']) {
+                                    $this->dc->getConnection()
+                                        ->insert($radix->getTable('_images'), ['media_hash' => $hash, 'banned' => 1]);
+                                } else {
+                                    $this->dc->qb()
+                                        ->update($radix->getTable('_images'))
+                                        ->set('banned', 1)
+                                        ->where('media_hash = :media_hash')
+                                        ->setParameter(':media_hash', $hash)
+                                        ->execute();
+                                }
 
-                                    $output->write('+');
-                                } catch (\Exception $e) {$output->write('-');}
+                                $output->write('+');
+                            } catch (\Exception $e) {
+                                $output->write('-');
                             }
-                        } else {
-                            $output->write('.');
                         }
-                    }
-                    if ($result_r['total_count'] / 100 <= $page) {
-                        $run = 0;
+                    } else {
+                        $output->write('.');
                     }
                 }
+                if ($result_r['total_count'] / 100 <= $page) {
+                    $run = 0;
+                }
             }
-            $sleep = $this->preferences->get('foolfuuka.plugins.intel.get.sleep');
-            $output->writeln("\n* Sleeping for $sleep minutes");
-            sleep($sleep * 60);
         }
+        $output->writeln("\nFinished");
     }
 }
